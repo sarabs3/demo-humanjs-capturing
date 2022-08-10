@@ -5256,5 +5256,5 @@ const all = {
     bottomleft,
     remaining,
 };
-console.log(bottomRight);
+console.log(bottomleft);
 // export default all;

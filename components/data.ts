@@ -1,13 +1,12 @@
 import data from './data.json';
-
 const yawPitchData = Object.keys(data) // .filter(k => !k)
 
 let validYawPitchData: any[] = [];
 yawPitchData.forEach((k: any) => {
-    const item = data[k];
+    const item = data[k as keyof typeof data]; 
     const child = Object.keys(item);
-    child.forEach(l => {
-        const childItem = item[l];
+    child.forEach((l: any) => {
+        const childItem = item[l as keyof typeof item];
         if (childItem.count > 0) {
             validYawPitchData.push(childItem)
         }
@@ -15,7 +14,6 @@ yawPitchData.forEach((k: any) => {
 });
 
 
-console.log(validYawPitchData.length);
 let topLeft: { values: { yaw: number, pitch: number, valid: boolean }[], highestPitch: number, highestYaw: number } = {
     values: [],
     highestPitch: 0,

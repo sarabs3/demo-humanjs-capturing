@@ -1,4 +1,4 @@
-import { Component, createRef } from "react";
+import { Component } from "react";
 import type { Human, Config } from '@vladmandic/human/dist/human.esm';
 import { log, status } from './logging';
 import validYawPitchData from './data';
@@ -19,7 +19,7 @@ type Pitch = {
   yaw: number
 };
 interface Props { inputId: string, outputId: string };
-interface State { ready: boolean, frame: number };
+interface State { ready: boolean, frame: number, counter: number };
 
 class RunHuman extends Component<Props, State> {
   HumanImport: any;
@@ -45,9 +45,8 @@ class RunHuman extends Component<Props, State> {
         status('initializing...');
         this.human!.warmup().then(() => { // warmup function to initialize backend for future faster detection
           this.setState({ ready: true });
-
-          this.anglesToCapture.current = validYawPitchData;
-          this.counter.current = 0;
+          this.anglesToCapture = validYawPitchData;
+          this.counter = 0;
           status('ready...');
         });
       });
@@ -55,9 +54,9 @@ class RunHuman extends Component<Props, State> {
   }
 
 
-  anglesToCapture = createRef();
-  counter = createRef();
-  state = { counter: 0, ready: false }
+  anglesToCapture: any = [];
+  counter = 0;
+  override state = { counter: 0, ready: false, frame: 0 }
   messages = [
     "Move your head to top left! ",
     "Move your head to top right! ",
@@ -72,12 +71,12 @@ class RunHuman extends Component<Props, State> {
     this.capturedAngles.push({ pitch, yaw });
     console.log('top =>', pitch, yaw);
 
-    switch (this.counter.current) {
+    switch (this.counter) {
       case 0 : {
-        const { highestPitch, highestYaw } = this.anglesToCapture.current.topLeft;
+        const { highestPitch, highestYaw } = this.anglesToCapture.topLeft;
         if (pitch < (highestPitch-10) &&  yaw < (highestYaw-10)) {
           console.log('counter 0 =>', pitch, highestPitch,  yaw, highestYaw, this.capturedAngles);
-          this.counter.current += 1;
+          this.counter += 1;
           this.video?.pause();
           
           this.captureAnglesWithFrame();
@@ -85,10 +84,10 @@ class RunHuman extends Component<Props, State> {
         break;
       }
       case 1 : {
-        const { highestPitch, highestYaw } = this.anglesToCapture.current.topRight;
+        const { highestPitch, highestYaw } = this.anglesToCapture.topRight;
         if (pitch <= highestPitch &&  yaw >= highestYaw) {
           console.log('counter 1 =>', pitch, highestPitch,  yaw, highestYaw);
-          this.counter.current += 1;
+          this.counter += 1;
           setTimeout(() => this.video?.pause(), 1000);
           
           this.captureTopRightAngles();
@@ -96,10 +95,10 @@ class RunHuman extends Component<Props, State> {
         break;
       }
       case 2 : {
-        const { highestPitch, highestYaw } = this.anglesToCapture.current.bottomRight;
+        const { highestPitch, highestYaw } = this.anglesToCapture.bottomRight;
         if (pitch >= highestPitch &&  yaw >= highestYaw) {
           console.log('counter 2 =>', this.state.counter);
-          this.counter.current += 1;
+          this.counter += 1;
           setTimeout(() => this.video?.pause(), 1000);
           
           this.captureBottomRightAngles();
@@ -107,10 +106,10 @@ class RunHuman extends Component<Props, State> {
         break;
       }
       case 3 : {
-        const { highestPitch, highestYaw } = this.anglesToCapture.current.bottomleft;
-        if (pitch < highestPitch &&  yaw > highestYaw) {
+        const { highestPitch, highestYaw } = this.anglesToCapture.bottomleft;
+        if (pitch > highestPitch &&  yaw < highestYaw) {
           console.log('counter 3 =>', this.state.counter);
-          this.counter.current += 1;
+          this.counter += 1;
           setTimeout(() => this.video?.pause(), 1000);
           
           this.captureBottomLeftAngles();
@@ -124,56 +123,57 @@ class RunHuman extends Component<Props, State> {
   };
 
   captureAnglesWithFrame = () => {
-    console.log('length => ', this.anglesToCapture.current.topLeft.values.length);
-    this.anglesToCapture.current.topLeft.values.forEach(({ pitch_bin, yaw_bin }) => {
-      const index = this.capturedAngles.findIndex(angle => angle.pitch ===  parseInt(pitch_bin) && angle.yaw === parseInt(yaw_bin));
+    console.log('length => ', this.anglesToCapture.topLeft.values.length);
+    this.anglesToCapture.topLeft.values.forEach(({ pitch, yaw }: {  pitch: string, yaw: string }) => {
+      const index = this.capturedAngles.findIndex(angle => angle.pitch ===  parseInt(pitch) && angle.yaw === parseInt(yaw));
       if (index) {
       console.log('matched');
-      this.anglesToCapture.current.topLeft.values.splice(index, 1);
+      this.anglesToCapture.topLeft.values.splice(index, 1);
     }
     })
-    console.log('length => ', this.anglesToCapture.current.topLeft.values.length);
+    console.log('length => ', this.anglesToCapture.topLeft.values.length);
   }
 
   captureTopRightAngles = () => {
-    console.log('length => ', this.anglesToCapture.current.topRight.values.length);
-    this.anglesToCapture.current.topRight.values.forEach(({ pitch_bin, yaw_bin }) => {
-      const index = this.capturedAngles.findIndex(angle => angle.pitch ===  parseInt(pitch_bin) && angle.yaw === parseInt(yaw_bin));
+    console.log('length => ', this.anglesToCapture.topRight.values.length);
+    this.anglesToCapture.topRight.values.forEach(({ pitch, yaw }: {  pitch: string, yaw: string }) => {
+      const index = this.capturedAngles.findIndex(angle => angle.pitch ===  parseInt(pitch) && angle.yaw === parseInt(yaw));
       if (index) {
       console.log('matched');
-      this.anglesToCapture.current.topRight.values.splice(index, 1);
+      this.anglesToCapture.topRight.values.splice(index, 1);
     }
     })
-    console.log('length => ', this.anglesToCapture.current.topRight.values.length);
+    console.log('length => ', this.anglesToCapture.topRight.values.length);
   }
 
   captureBottomRightAngles = () => {
-    console.log('length => ', this.anglesToCapture.current.bottomRight.values.length);
-    this.anglesToCapture.current.bottomRight.values.forEach(({ pitch_bin, yaw_bin }) => {
-      const index = this.capturedAngles.findIndex(angle => angle.pitch ===  parseInt(pitch_bin) && angle.yaw === parseInt(yaw_bin));
+    console.log('length => ', this.anglesToCapture.bottomRight.values.length);
+    this.anglesToCapture.bottomRight.values.forEach(({ pitch, yaw }: {  pitch: string, yaw: string }) => {
+      const index = this.capturedAngles.findIndex(angle => angle.pitch ===  parseInt(pitch) && angle.yaw === parseInt(yaw));
       if (index) {
       console.log('matched');
-      this.anglesToCapture.current.bottomRight.values.splice(index, 1);
+      this.anglesToCapture.bottomRight.values.splice(index, 1);
     }
     })
-    console.log('length => ', this.anglesToCapture.current.bottomRight.values.length);
+    console.log('length => ', this.anglesToCapture.bottomRight.values.length);
   }
 
   captureBottomLeftAngles = () => {
-    console.log('length => ', this.anglesToCapture.current.bottomleft.values.length);
-    this.anglesToCapture.current.bottomleft.values.forEach(({ pitch_bin, yaw_bin }) => {
-      const index = this.capturedAngles.findIndex(angle => angle.pitch ===  parseInt(pitch_bin) && angle.yaw === parseInt(yaw_bin));
+    console.log('length => ', this.anglesToCapture.bottomleft.values.length);
+    this.anglesToCapture.bottomleft.values.forEach(({ pitch, yaw }: {  pitch: string, yaw: string }) => {
+      const index = this.capturedAngles.findIndex(angle => angle.pitch ===  parseInt(pitch) && angle.yaw === parseInt(yaw));
       if (index) {
       console.log('matched');
-      this.anglesToCapture.current.bottomleft.values.splice(index, 1);
+      this.anglesToCapture.bottomleft.values.splice(index, 1);
     }
     })
-    console.log('length => ', this.anglesToCapture.current.bottomleft.values.length);
+    console.log('length => ', this.anglesToCapture.bottomleft.values.length);
   }
 
   getMessage = () => {
-    if (!this.anglesToCapture.current) return null;
-    const { topLeft, topRight, bottomleft, bottomRight } = this.anglesToCapture.current;
+    if (!this.anglesToCapture) return null;
+    console.log('this.anglesToCapture', this.anglesToCapture);
+    const { topLeft, topRight, bottomleft, bottomRight } = this.anglesToCapture;
     const total = topLeft.values.length + topRight.values.length + bottomleft.values.length + bottomRight.values.length;
     return total;
   };
@@ -194,7 +194,7 @@ class RunHuman extends Component<Props, State> {
     if (!this || !this.video || !this.canvas || !this.human || !this.human.result) return null;
     if (!this.video.paused) {
       const interpolated = this.human.next(this.human.result); // smoothen result using last-known results
-      if (interpolated.face[0]){
+      if (interpolated.face[0] && interpolated.face[0]?.rotation?.angle){
       const { yaw, pitch } = interpolated.face[0]?.rotation?.angle;
       if ( yaw && pitch) {
         const rad2deg = (theta: number) => Math.round((theta * 180) / Math.PI);
@@ -209,7 +209,7 @@ class RunHuman extends Component<Props, State> {
     if (this.video.paused) {
       return (
         <>
-        <p className="text">{this.messages[this.counter.current]} 
+        <p className="text">{this.messages[this.counter]} 
         <br />
         <span>Frames to be captured {this.getMessage()}</span>
         <button onClick={() => this.video?.play()}>Start Recording!</button>
