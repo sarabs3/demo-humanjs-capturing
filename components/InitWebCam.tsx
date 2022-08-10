@@ -1,12 +1,10 @@
 import { Component } from "react";
-import RecordRTC from 'recordrtc';
 
 interface Props { elementId: string };
 interface State { ready: boolean };
 
 
 export type MimeTypes = 'video/webm' | 'video/webm;codecs=h264'; // 'video/mp4' |
-const videoMimeType: MimeTypes = 'video/webm;codecs=h264';
 
 class InitWebCam extends Component<Props, State> {
   video: HTMLVideoElement | undefined;

@@ -1,4 +1,4 @@
-const data = {
+[{
     "<-60": {
         ">40": {
             "pitch_bin": ">40",
@@ -5199,62 +5199,4 @@ const data = {
             ]
         }
     }
-}
-const yawPitchData = Object.keys(data) // .filter(k => !k)
-
-let validYawPitchData = [];
-yawPitchData.forEach((k) => {
-    const item = data[k];
-    const child = Object.keys(item);
-    child.forEach(l => {
-        const childItem = item[l];
-        if (childItem.count > 0) {
-            validYawPitchData.push(childItem)
-        }
-    });
-});
-
-
-let topLeft = { values: [] };
-const bottomRight = { values: [] };
-const topRight = { values: [] };
-const bottomleft = { values: [] };
-const remaining = [];
-validYawPitchData.forEach((f) => {
-    if(parseInt(f.pitch_bin) < 0 && parseInt(f.yaw_bin) < 0) {
-        topLeft.values.push({ yaw: parseInt(f.yaw_bin), pitch: parseInt(f.pitch_bin), valid: false });
-    }
-    else if (parseInt(f.pitch_bin) > 0 && parseInt(f.yaw_bin) > 0) {
-        bottomRight.values.push({ yaw: parseInt(f.yaw_bin), pitch: parseInt(f.pitch_bin), valid: false });
-    }
-    else if(parseInt(f.pitch_bin) < 0 && parseInt(f.yaw_bin) > 0) {
-        topRight.values.push({ yaw: parseInt(f.yaw_bin), pitch: parseInt(f.pitch_bin), valid: false });
-    }
-    else if(parseInt(f.pitch_bin) > 0 && parseInt(f.yaw_bin) < 0) {
-        bottomleft.values.push({ yaw: parseInt(f.yaw_bin), pitch: parseInt(f.pitch_bin), valid: false });
-    } else {
-        remaining.push({ yaw: parseInt(f.yaw_bin), pitch: parseInt(f.pitch_bin), valid: false });
-    }
-});
-topLeft.highestPitch = topLeft.values.map(p => p.pitch).sort((a,b) => b-a)[0]
-topLeft.highestYaw = topLeft.values.map(p => p.yaw).sort((a,b) => b-a)[0]
-
-bottomRight.highestPitch = bottomRight.values.map(p => p.pitch).sort((a,b) => b-a)[0]
-bottomRight.highestYaw = bottomRight.values.map(p => p.yaw).sort((a,b) => b-a)[0]
-
-topRight.highestPitch = topRight.values.map(p => p.pitch).sort((a,b) => b-a)[0]
-topRight.highestYaw = topRight.values.map(p => p.yaw).sort((a,b) => b-a)[0]
-bottomleft.highestPitch = bottomleft.values.map(p => p.pitch).sort((a,b) => b-a)[0]
-bottomleft.highestYaw = bottomleft.values.map(p => p.yaw).sort((a,b) => b-a)[0]
-
-
-const all = {
-    total: validYawPitchData,
-    topLeft,
-    bottomRight,
-    topRight,
-    bottomleft,
-    remaining,
-};
-console.log(bottomRight);
-// export default all;
+}]

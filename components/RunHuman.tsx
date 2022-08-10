@@ -70,12 +70,12 @@ class RunHuman extends Component<Props, State> {
 
   captureAngles = (pitch: number, yaw: number) => {
     this.capturedAngles.push({ pitch, yaw });
-    console.log('top =>', Math.abs(pitch), Math.abs(yaw));
+    console.log('top =>', pitch, yaw);
 
     switch (this.counter.current) {
       case 0 : {
         const { highestPitch, highestYaw } = this.anglesToCapture.current.topLeft;
-        if (pitch < highestPitch &&  yaw < highestYaw) {
+        if (pitch < (highestPitch-10) &&  yaw < (highestYaw-10)) {
           console.log('counter 0 =>', pitch, highestPitch,  yaw, highestYaw, this.capturedAngles);
           this.counter.current += 1;
           this.video?.pause();
@@ -96,8 +96,8 @@ class RunHuman extends Component<Props, State> {
         break;
       }
       case 2 : {
-        const { highestPitch, highestYaw } = this.anglesToCapture.current.topRight;
-        if (pitch > highestPitch &&  yaw > highestYaw) {
+        const { highestPitch, highestYaw } = this.anglesToCapture.current.bottomRight;
+        if (pitch >= highestPitch &&  yaw >= highestYaw) {
           console.log('counter 2 =>', this.state.counter);
           this.counter.current += 1;
           setTimeout(() => this.video?.pause(), 1000);
